@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    environment:
+      - PORT=3001
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=longpasswordstring
+      - DB_NAME=ambisiusTestDatabase
+    depends_on:
+      - db
+
+  web-builder:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    environment:
+      - NEXT_PUBLIC_API_URI=/api
+    volumes:
+      - ./html:/var/dist
+
+  db:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: longpasswordstring
+      POSTGRES_DB: ambisiusTestDatabase
+
+  nginx:
+    container_name: nginx
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./templates:/etc/nginx/templates
+      - ./html:/usr/share/nginx/html
